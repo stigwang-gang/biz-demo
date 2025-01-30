@@ -2,7 +2,10 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"github.com/hertz-contrib/sessions"
+	"github.com/stigwang-gang/biz-demo/gomall/app/frontend/infra/rpc"
+	"github.com/stigwang-gang/biz-demo/gomall/rpc_gen/kitex_gen/user"
 
 	"github.com/cloudwego/hertz/pkg/app"
 	auth "github.com/stigwang-gang/biz-demo/gomall/app/frontend/hertz_gen/frontend/auth"
@@ -24,8 +27,18 @@ func (h *RegisterService) Run(req *auth.RegisterReq) (resp *common.Empty, err er
 	// hlog.CtxInfof(h.Context, "resp = %+v", resp)
 	//}()
 	// todo edit your code
+	userResp, err := rpc.UserClient.Register(h.Context, &user.RegisterReq{
+		Email:           req.Email,
+		Password:        req.Password,
+		PasswordConfirm: req.PasswordConfirm,
+	})
+	fmt.Printf("userReq request: %+v\n", userResp)
+	fmt.Printf("req request: %+v\n", req.PasswordConfirm)
+	if err != nil {
+		return nil, err
+	}
 	session := sessions.Default(h.RequestContext)
-	session.Set("user_id", 5)
+	session.Set("user_id", userResp.UserId)
 	err = session.Save()
 	if err != nil {
 		return nil, err
