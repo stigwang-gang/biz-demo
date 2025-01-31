@@ -7,4 +7,5 @@ use (
 	./demo/demo_thrift
 	app/frontend
 	app/user
+	app/payment
 )

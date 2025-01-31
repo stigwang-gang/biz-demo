@@ -1,9 +1,6 @@
 package main
 
 import (
-	"github.com/joho/godotenv"
-	consul "github.com/kitex-contrib/registry-consul"
-	"github.com/stigwang-gang/biz-demo/gomall/app/payment/biz/dal"
 	"net"
 	"time"
 
@@ -11,18 +8,16 @@ import (
 	"github.com/cloudwego/kitex/pkg/rpcinfo"
 	"github.com/cloudwego/kitex/server"
 	kitexlogrus "github.com/kitex-contrib/obs-opentelemetry/logging/logrus"
-	"github.com/stigwang-gang/biz-demo/gomall/app/payment/conf"
-	"github.com/stigwang-gang/biz-demo/gomall/rpc_gen/kitex_gen/payment/paymentservice"
+	"github.com/stigwang-gang/biz-demo/gomall/app/checkout/conf"
+	"github.com/stigwang-gang/biz-demo/gomall/rpc_gen/kitex_gen/checkout/checkoutservice"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 func main() {
-	_ = godotenv.Load()
-	dal.Init()
 	opts := kitexInit()
 
-	svr := paymentservice.NewServer(new(PaymentServiceImpl), opts...)
+	svr := checkoutservice.NewServer(new(CheckoutServiceImpl), opts...)
 
 	err := svr.Run()
 	if err != nil {
@@ -39,13 +34,9 @@ func kitexInit() (opts []server.Option) {
 	opts = append(opts, server.WithServiceAddr(addr))
 
 	// service info
-	r, err := consul.NewConsulRegister(conf.GetConf().Registry.RegistryAddress[0])
-	if err != nil {
-		klog.Fatal(err)
-	}
 	opts = append(opts, server.WithServerBasicInfo(&rpcinfo.EndpointBasicInfo{
 		ServiceName: conf.GetConf().Kitex.Service,
-	}), server.WithRegistry(r))
+	}))
 
 	// klog
 	logger := kitexlogrus.NewLogger()
