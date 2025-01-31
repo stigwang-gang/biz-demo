@@ -1,6 +1,10 @@
 package main
 
 import (
+	"github.com/joho/godotenv"
+	consul "github.com/kitex-contrib/registry-consul"
+	"github.com/stigwang-gang/biz-demo/gomall/app/cart/biz/dal"
+	"github.com/stigwang-gang/biz-demo/gomall/app/cart/rpc"
 	"net"
 	"time"
 
@@ -15,8 +19,10 @@ import (
 )
 
 func main() {
+	_ = godotenv.Load()
 	opts := kitexInit()
-
+	rpc.Init()
+	dal.Init()
 	svr := cartservice.NewServer(new(CartServiceImpl), opts...)
 
 	err := svr.Run()
@@ -33,10 +39,15 @@ func kitexInit() (opts []server.Option) {
 	}
 	opts = append(opts, server.WithServiceAddr(addr))
 
+	r, err := consul.NewConsulRegister(conf.GetConf().Registry.RegistryAddress[0])
+	if err != nil {
+		klog.Fatal(err)
+	}
+
 	// service info
 	opts = append(opts, server.WithServerBasicInfo(&rpcinfo.EndpointBasicInfo{
 		ServiceName: conf.GetConf().Kitex.Service,
-	}))
+	}), server.WithRegistry(r))
 
 	// klog
 	logger := kitexlogrus.NewLogger()
